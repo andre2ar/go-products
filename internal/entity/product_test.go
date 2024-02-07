@@ -6,14 +6,14 @@ import (
 )
 
 func TestNewProduct(t *testing.T) {
-	p, err := NewProduct("Product 1", 10)
+	p, err := NewProduct("Product 1", 10.0)
 
 	assert.NotNil(t, p)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, p.ID)
 	assert.NotEmpty(t, p.CreatedAt)
 	assert.Equal(t, "Product 1", p.Name)
-	assert.Equal(t, 10, p.Price)
+	assert.Equal(t, 10.0, p.Price)
 }
 
 func TestProductWhenNameIsRequired(t *testing.T) {
