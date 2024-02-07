@@ -5,6 +5,8 @@ import (
 	"github.com/andre2ar/go-products/internal/entity"
 	"github.com/andre2ar/go-products/internal/infra/database"
 	"github.com/andre2ar/go-products/internal/infra/webserver/handlers"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"log"
@@ -31,7 +33,17 @@ func main() {
 
 	productRepository := database.NewProduct(db)
 	productHandler := handlers.NewProductHandler(productRepository)
-	http.HandleFunc("/products", productHandler.CreateProduct)
 
-	log.Fatalln(http.ListenAndServe(":8000", nil))
+	r := chi.NewRouter()
+
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Post("/products", productHandler.CreateProduct)
+	})
+
+	log.Fatalln(http.ListenAndServe(":8000", r))
 }
