@@ -21,15 +21,14 @@ type conf struct {
 }
 
 func LoadConfig(path string) (*conf, error) {
-	viper.SetConfigName("app_config")
-	viper.SetConfigType("env")
 	viper.AddConfigPath(path)
-	viper.SetConfigFile(".env")
+	viper.SetConfigName("app")
+	viper.SetConfigType("env")
 	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	err = viper.Unmarshal(&cfg)
