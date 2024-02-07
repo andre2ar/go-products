@@ -1,7 +1,25 @@
-POST http://localhost:8000/api/v1/products
+POST http://localhost:8000/api/v1/products HTTP/1.1
 Content-Type: application/json
 
 {
-  "name": "My Product",
-  "price": 100
+  "name": "A cheap product",
+  "price": 1
 }
+
+###
+GET http://localhost:8000/api/v1/products HTTP/1.1
+
+###
+GET http://localhost:8000/api/v1/products/c55d1e71-c862-4300-ba76-ed89667c63d5 HTTP/1.1
+
+###
+PUT http://localhost:8000/api/v1/products/c55d1e71-c862-4300-ba76-ed89667c63d5 HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "A real expensive product",
+  "price": 9999.9
+}
+
+###
+DELETE http://localhost:8000/api/v1/products/c55d1e71-c862-4300-ba76-ed89667c63d5 HTTP/1.1

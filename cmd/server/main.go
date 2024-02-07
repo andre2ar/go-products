@@ -42,7 +42,11 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Get("/products", productHandler.GetProducts)
 		r.Post("/products", productHandler.CreateProduct)
+		r.Get("/products/{id}", productHandler.GetProduct)
+		r.Put("/products/{id}", productHandler.UpdateProduct)
+		r.Delete("/products/{id}", productHandler.DeleteProduct)
 	})
 
 	log.Fatalln(http.ListenAndServe(":8000", r))
