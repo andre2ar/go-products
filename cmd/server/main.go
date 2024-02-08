@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	_, err := configs.LoadConfig("./cmd/server")
+	config, err := configs.LoadConfig("./cmd/server")
 	if err != nil {
 		panic(err)
 	}
@@ -44,14 +44,19 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	r.Use(middleware.WithValue("Jwt", config.TokenAuth))
+	r.Use(middleware.WithValue("JwtExpiresIn", config.JWTExpiresIn))
+
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Post("/sessions", userHandler.CreateSession)
+
+		r.Post("/users", userHandler.CreateUser)
+
 		r.Get("/products", productHandler.GetProducts)
 		r.Post("/products", productHandler.CreateProduct)
 		r.Get("/products/{id}", productHandler.GetProduct)
 		r.Put("/products/{id}", productHandler.UpdateProduct)
 		r.Delete("/products/{id}", productHandler.DeleteProduct)
-
-		r.Post("/users", userHandler.Create)
 	})
 
 	log.Fatalln(http.ListenAndServe(":8000", r))

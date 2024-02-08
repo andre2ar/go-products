@@ -10,3 +10,12 @@ type CreateUserInput struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type LoginCredentialsInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type AuthResponse struct {
+	AccessToken string `json:"access_token"`
+}

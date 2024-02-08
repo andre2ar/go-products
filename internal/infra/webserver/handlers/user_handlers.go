@@ -7,6 +7,7 @@ import (
 	"github.com/andre2ar/go-products/internal/infra/database"
 	"github.com/go-chi/jwtauth/v5"
 	"net/http"
+	"time"
 )
 
 type Error struct {
@@ -15,15 +16,48 @@ type Error struct {
 
 type UserHandler struct {
 	UserRepository database.UserRepositoryInterface
-	Jwt            *jwtauth.JWTAuth
-	JwtExpiresIn   int
 }
 
 func NewUserHandler(userRepository database.UserRepositoryInterface) *UserHandler {
 	return &UserHandler{UserRepository: userRepository}
 }
 
-func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) CreateSession(w http.ResponseWriter, r *http.Request) {
+	jwt := r.Context().Value("Jwt").(*jwtauth.JWTAuth)
+	jwtExpiresIn := r.Context().Value("JwtExpiresIn").(int)
+
+	var loginCredentials dto.LoginCredentialsInput
+	err := json.NewDecoder(r.Body).Decode(&loginCredentials)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.UserRepository.FindByEmail(loginCredentials.Email)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		err := Error{Message: err.Error()}
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	if !user.ValidatePassword(loginCredentials.Password) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	_, tokenString, _ := jwt.Encode(map[string]interface{}{
+		"sub": user.ID.String(),
+		"exp": time.Now().Add(time.Second * time.Duration(jwtExpiresIn)).Unix(),
+	})
+
+	accessToken := dto.AuthResponse{AccessToken: tokenString}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(accessToken)
+}
+
+func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user dto.CreateUserInput
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
