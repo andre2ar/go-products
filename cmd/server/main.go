@@ -7,6 +7,7 @@ import (
 	"github.com/andre2ar/go-products/internal/infra/webserver/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/jwtauth/v5"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"log"
@@ -52,11 +53,16 @@ func main() {
 
 		r.Post("/users", userHandler.CreateUser)
 
-		r.Get("/products", productHandler.GetProducts)
-		r.Post("/products", productHandler.CreateProduct)
-		r.Get("/products/{id}", productHandler.GetProduct)
-		r.Put("/products/{id}", productHandler.UpdateProduct)
-		r.Delete("/products/{id}", productHandler.DeleteProduct)
+		r.Route("/products", func(r chi.Router) {
+			r.Use(jwtauth.Verifier(config.TokenAuth))
+			r.Use(jwtauth.Authenticator(config.TokenAuth))
+
+			r.Get("/", productHandler.GetProducts)
+			r.Post("/", productHandler.CreateProduct)
+			r.Get("/{id}", productHandler.GetProduct)
+			r.Put("/{id}", productHandler.UpdateProduct)
+			r.Delete("/{id}", productHandler.DeleteProduct)
+		})
 	})
 
 	log.Fatalln(http.ListenAndServe(":8000", r))

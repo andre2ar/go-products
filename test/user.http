@@ -7,7 +7,7 @@ Content-Type: application/json
   "password": "123456789"
 }
 
-###
+### Login
 
 POST http://localhost:8000/api/v1/sessions HTTP/1.1
 Content-Type: application/json
@@ -16,3 +16,5 @@ Content-Type: application/json
   "email": "test@test.com",
   "password": "123456789"
 }
+
+> {% client.global.set("access_token", response.body.access_token); %}
