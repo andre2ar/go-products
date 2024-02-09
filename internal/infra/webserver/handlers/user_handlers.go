@@ -22,6 +22,17 @@ func NewUserHandler(userRepository database.UserRepositoryInterface) *UserHandle
 	return &UserHandler{UserRepository: userRepository}
 }
 
+// CreateSession godoc
+// @Summary      Create Session
+// @Description  Create Session
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request   body     dto.LoginCredentialsInput  true  "user credentials"
+// @Success      200  {object}  dto.AuthResponse
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/v1/sessions [post]
 func (h *UserHandler) CreateSession(w http.ResponseWriter, r *http.Request) {
 	jwt := r.Context().Value("Jwt").(*jwtauth.JWTAuth)
 	jwtExpiresIn := r.Context().Value("JwtExpiresIn").(int)
@@ -57,6 +68,16 @@ func (h *UserHandler) CreateSession(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(accessToken)
 }
 
+// CreateUser    godoc
+// @Summary      Create user
+// @Description  Create user
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request     body      dto.CreateUserInput  true  "user request"
+// @Success      201
+// @Failure      500         {object}  Error
+// @Router       /api/v1/users [post]
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user dto.CreateUserInput
 	err := json.NewDecoder(r.Body).Decode(&user)

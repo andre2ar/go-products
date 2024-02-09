@@ -2,18 +2,34 @@ package main
 
 import (
 	"github.com/andre2ar/go-products/configs"
+	_ "github.com/andre2ar/go-products/docs"
 	"github.com/andre2ar/go-products/internal/entity"
 	"github.com/andre2ar/go-products/internal/infra/database"
 	"github.com/andre2ar/go-products/internal/infra/webserver/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/swaggo/http-swagger/v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"log"
 	"net/http"
 )
 
+// @title           Go Products
+// @version         1.0
+// @description     Product API with authentication
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   André Alvim Ribeiro
+// @contact.url    https://www.linkedin.com/in/andre2ar/
+// @contact.email  andre2ar@outlook.com
+
+// @host      localhost:8000
+// @BasePath  /
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	config, err := configs.LoadConfig("./cmd/server")
 	if err != nil {
@@ -38,6 +54,8 @@ func main() {
 	userRepository := database.NewUser(db)
 	userHandler := handlers.NewUserHandler(userRepository)
 
+	log.Println("Documentation can be found on " + config.DocsUrl + "/api/v1/docs/index.html")
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -49,6 +67,8 @@ func main() {
 	r.Use(middleware.WithValue("JwtExpiresIn", config.JWTExpiresIn))
 
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL(config.DocsUrl+"/api/v1/docs/doc.json")))
+
 		r.Post("/sessions", userHandler.CreateSession)
 
 		r.Post("/users", userHandler.CreateUser)
