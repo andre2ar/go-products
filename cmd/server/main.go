@@ -91,12 +91,12 @@ func main() {
 		})
 	})
 
-	startServer(r)
+	StartServer(r, config.WebServerPort)
 }
 
-func startServer(r *chi.Mux) {
+func StartServer(r *chi.Mux, port string) {
 	server := &http.Server{
-		Addr:    ":8000",
+		Addr:    ":" + port,
 		Handler: r,
 	}
 
@@ -108,7 +108,7 @@ func startServer(r *chi.Mux) {
 		}
 	}()
 
-	log.Println("Server started at: http://localhost:8000")
+	log.Println("Server started at: http://localhost:" + port)
 
 	WaitForTerminateSignal()
 
