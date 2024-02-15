@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"github.com/andre2ar/go-products/configs"
 	_ "github.com/andre2ar/go-products/docs"
 	"github.com/andre2ar/go-products/internal/entity"
@@ -14,6 +16,10 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 // @title           Go Products
@@ -85,5 +91,45 @@ func main() {
 		})
 	})
 
-	log.Fatalln(http.ListenAndServe(":8000", r))
+	startServer(r)
+}
+
+func startServer(r *chi.Mux) {
+	server := &http.Server{
+		Addr:    ":8000",
+		Handler: r,
+	}
+
+	go func() {
+		err := server.ListenAndServe()
+
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalln(err)
+		}
+	}()
+
+	log.Println("Server started at: http://localhost:8000")
+
+	WaitForTerminateSignal()
+
+	GracefullyShutdown(server)
+}
+
+func WaitForTerminateSignal() {
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+	<-stop
+}
+
+func GracefullyShutdown(server *http.Server) {
+	ctx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelShutdown()
+
+	log.Println("Shutting down server in upt to 5 seconds...")
+	err := server.Shutdown(ctx)
+	if err != nil {
+		log.Fatalf("Could not gracefully shutdown server: %v\n", err)
+	}
+
+	log.Println("Server stopped")
 }
