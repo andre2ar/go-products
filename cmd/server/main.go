@@ -62,36 +62,36 @@ func main() {
 
 	log.Println("Documentation can be found on " + config.DocsUrl + "/api/v1/docs/index.html")
 
-	r := chi.NewRouter()
+	router := chi.NewRouter()
 
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
 
-	r.Use(middleware.WithValue("Jwt", config.TokenAuth))
-	r.Use(middleware.WithValue("JwtExpiresIn", config.JWTExpiresIn))
+	router.Use(middleware.WithValue("Jwt", config.TokenAuth))
+	router.Use(middleware.WithValue("JwtExpiresIn", config.JWTExpiresIn))
 
-	r.Route("/api/v1", func(r chi.Router) {
-		r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL(config.DocsUrl+"/api/v1/docs/doc.json")))
+	router.Route("/api/v1", func(router chi.Router) {
+		router.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL(config.DocsUrl+"/api/v1/docs/doc.json")))
 
-		r.Post("/sessions", userHandler.CreateSession)
+		router.Post("/sessions", userHandler.CreateSession)
 
-		r.Post("/users", userHandler.CreateUser)
+		router.Post("/users", userHandler.CreateUser)
 
-		r.Route("/products", func(r chi.Router) {
-			r.Use(jwtauth.Verifier(config.TokenAuth))
-			r.Use(jwtauth.Authenticator(config.TokenAuth))
+		router.Route("/products", func(router chi.Router) {
+			router.Use(jwtauth.Verifier(config.TokenAuth))
+			router.Use(jwtauth.Authenticator(config.TokenAuth))
 
-			r.Get("/", productHandler.GetProducts)
-			r.Post("/", productHandler.CreateProduct)
-			r.Get("/{id}", productHandler.GetProduct)
-			r.Put("/{id}", productHandler.UpdateProduct)
-			r.Delete("/{id}", productHandler.DeleteProduct)
+			router.Get("/", productHandler.GetProducts)
+			router.Post("/", productHandler.CreateProduct)
+			router.Get("/{id}", productHandler.GetProduct)
+			router.Put("/{id}", productHandler.UpdateProduct)
+			router.Delete("/{id}", productHandler.DeleteProduct)
 		})
 	})
 
-	StartServer(r, config.WebServerPort)
+	StartServer(router, config.WebServerPort)
 }
 
 func StartServer(r *chi.Mux, port string) {
